@@ -12,6 +12,13 @@ Speak to it in your browser and get:
 - Intelligent answers with short-term memory per session
 - Natural voice replies
 
+### UI Preview
+
+Medha runs entirely in the browser with a dark, mobile‑inspired chat UI:
+
+![Medha Voice Assistant – Conversation](docs/screenshots/medha-chat-1.png)
+![Medha Voice Assistant – Long answer](docs/screenshots/medha-chat-2.png)
+
 > This project is designed to be portfolio‑ready: you can push this
 > folder as a standalone GitHub repo and link it from your résumé or LinkedIn.
 
