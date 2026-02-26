@@ -17,7 +17,7 @@ try:
 except Exception:  # pragma: no cover - optional dependency path
     run_research_query = None  # type: ignore[assignment]
 
-app = FastAPI(title="Sakshi Voice Agent")
+app = FastAPI(title="Medha Voice Assistant")
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 

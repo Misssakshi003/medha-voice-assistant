@@ -1,4 +1,4 @@
-# Sakshi Voice Agent · Sarvam + Claude
+# Medha Voice Assistant · Sarvam + Claude
 
 A voice-first personal AI assistant that runs in your browser, powered by:
 
@@ -12,9 +12,8 @@ Speak to it in your browser and get:
 - Intelligent answers with short-term memory per session
 - Natural voice replies
 
-> This project is designed to be portfolio-ready: you can push the
-> `plumbing_data_pipeline` folder as a standalone GitHub repo and link it
-> from your résumé or LinkedIn.
+> This project is designed to be portfolio‑ready: you can push this
+> folder as a standalone GitHub repo and link it from your résumé or LinkedIn.
 
 ---
 
@@ -39,10 +38,10 @@ Speak to it in your browser and get:
 
 ## Project structure
 
-From inside `plumbing_data_pipeline/`:
+From the project root:
 
 ```text
-plumbing_data_pipeline/
+medha-voice-assistant/
 ├─ app.py                  # FastAPI app + routes
 ├─ agent_research.py       # Optional LangChain research agent (Claude Sonnet)
 ├─ templates/
@@ -64,7 +63,7 @@ Other files (like old notebooks/CSVs) are not required to run the chatbot.
 
 ### 1. Create and activate a virtual environment
 
-From the folder *above* `plumbing_data_pipeline`:
+From the folder *above* the project root:
 
 ```bash
 cd "assignments practise"          # your workspace root
@@ -75,7 +74,7 @@ source venv/bin/activate           # Windows: venv\Scripts\activate
 ### 2. Install dependencies
 
 ```bash
-cd plumbing_data_pipeline
+cd medha-voice-assistant
 pip install -r requirements.txt
 ```
 
