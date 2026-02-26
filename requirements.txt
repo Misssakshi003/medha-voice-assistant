@@ -1,0 +1,18 @@
+fastapi
+uvicorn
+sarvamai==0.1.25
+anthropic
+jinja2
+python-dotenv
+anyio
+httpx
+
+# Optional: agent / web research (used by agent_research.py)
+langchain
+langchain-community
+langchain-openai
+langchain-anthropic
+duckduckgo-search
+wikipedia
+pydantic
+

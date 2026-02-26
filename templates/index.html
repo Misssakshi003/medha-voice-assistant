@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Sarvam + Claude Voice Agent</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="/static/css/style.css" />
+  </head>
+  <body>
+    <div class="shell">
+      <header class="header">
+        <div class="header-left">
+          <div class="avatar">🎙️</div>
+          <div class="title-block">
+            <div class="title">Sakshi’s Voice Agent</div>
+            <div class="subtitle">Sarvam STT + Claude + Sarvam TTS</div>
+          </div>
+        </div>
+        <div class="pill">Session memory · Voice first</div>
+      </header>
+
+      <main class="main">
+        <section class="chat-card">
+          <div class="chat-header-row">
+            <div class="chat-title">Conversation</div>
+            <div class="chat-status" id="connection-status">Ready</div>
+          </div>
+          <div id="chat-log" class="chat-log"></div>
+
+          <div class="chat-footer">
+            <div class="controls-row">
+              <button id="start" class="mic-btn" title="Start recording">
+                🎤
+              </button>
+              <button id="stop" class="stop-btn" disabled title="Stop recording">
+                ■
+              </button>
+              <div class="status-pill" id="status"></div>
+            </div>
+            <div class="audio-row">
+              <audio id="audio" controls></audio>
+            </div>
+          </div>
+        </section>
+
+        <section class="info-card">
+          <div class="info-title">Try saying…</div>
+          <div class="info-chip-row">
+            <div class="chip">
+              “Summarise my day like a productivity coach.”
+            </div>
+            <div class="chip">
+              “Give me a YouTube link for peaceful lofi music.”
+            </div>
+            <div class="chip">
+              “Draft an email to my manager requesting WFH tomorrow.”
+            </div>
+            <div class="chip">
+              “Explain transformers to me like I’m 12.”
+            </div>
+          </div>
+
+          <p class="hint">
+            This project uses FastAPI + Sarvam AI + Claude. Voice stays local
+            in the browser, only audio for each turn is sent to the backend.
+          </p>
+        </section>
+      </main>
+    </div>
+
+    <script>
+      let mediaRecorder, chunks = [];
+      let history = []; // {role: 'user' | 'assistant', content: string}
+
+      const startBtn = document.getElementById("start");
+      const stopBtn = document.getElementById("stop");
+      const statusEl = document.getElementById("status");
+      const audio = document.getElementById("audio");
+      const chatLog = document.getElementById("chat-log");
+      const connectionStatus = document.getElementById("connection-status");
+
+      function setStatus(msg) {
+        statusEl.textContent = msg || "";
+      }
+
+      function addMessage(role, content) {
+        history.push({ role, content });
+        renderChat();
+      }
+
+      function renderChat() {
+        chatLog.innerHTML = "";
+        for (const m of history) {
+          if (!m || !m.content) continue;
+          const div = document.createElement("div");
+          const role = m.role === "assistant" ? "assistant" : "user";
+          div.className = "msg " + role;
+          div.textContent = m.content;
+          chatLog.appendChild(div);
+        }
+        chatLog.scrollTop = chatLog.scrollHeight;
+      }
+
+      async function sendAudio(blob) {
+        setStatus("Uploading and transcribing…");
+        connectionStatus.textContent = "Thinking…";
+
+        const form = new FormData();
+        form.append("file", blob, "audio.webm");
+        form.append("history", JSON.stringify(history));
+
+        audio.removeAttribute("src");
+
+        const resp = await fetch("/talk", { method: "POST", body: form });
+        const data = await resp.json();
+
+        if (!resp.ok) {
+          console.error("Server error:", data);
+          setStatus(data.detail || "Error from server");
+          connectionStatus.textContent = "Error";
+          return;
+        }
+
+        // Update conversation history (server-trimmed if provided)
+        if (Array.isArray(data.history)) {
+          history = data.history;
+        } else {
+          if (data.transcript) {
+            addMessage("user", data.transcript);
+          }
+          if (data.reply) {
+            addMessage("assistant", data.reply);
+          }
+        }
+        renderChat();
+
+        if (data.audio_b64) {
+          setStatus("Playing reply…");
+          const binary = atob(data.audio_b64);
+          const bytes = new Uint8Array(binary.length);
+          for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+          const wavBlob = new Blob([bytes], { type: "audio/wav" });
+          audio.src = URL.createObjectURL(wavBlob);
+          audio.play();
+          audio.onended = () => {
+            setStatus("");
+            connectionStatus.textContent = "Ready";
+          };
+        } else {
+          setStatus("Reply ready.");
+          connectionStatus.textContent = "Ready";
+        }
+      }
+
+      startBtn.onclick = async () => {
+        chunks = [];
+        setStatus("Requesting microphone…");
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+
+        mediaRecorder = new MediaRecorder(stream, { mimeType: "audio/webm" });
+        mediaRecorder.ondataavailable = (e) => chunks.push(e.data);
+
+        mediaRecorder.onstop = async () => {
+          const blob = new Blob(chunks, { type: "audio/webm" });
+          await sendAudio(blob);
+        };
+
+        mediaRecorder.start();
+        setStatus("Recording…");
+        connectionStatus.textContent = "Listening…";
+        startBtn.disabled = true;
+        stopBtn.disabled = false;
+      };
+
+      stopBtn.onclick = () => {
+        if (mediaRecorder && mediaRecorder.state === "recording") {
+          mediaRecorder.stop();
+          startBtn.disabled = false;
+          stopBtn.disabled = true;
+          setStatus("Processing…");
+        }
+      };
+    </script>
+  </body>
+</html>
+
